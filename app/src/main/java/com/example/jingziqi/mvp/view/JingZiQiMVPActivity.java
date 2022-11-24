@@ -1,0 +1,107 @@
+package com.example.jingziqi.mvp.view;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.jingziqi.R;
+import com.example.jingziqi.mvp.presenter.JingZiQiPresenter;
+
+/**
+ 二、MVP
+ M: Model
+ V:  View:  xml + activity + view的interface
+ P:  Presenter  逻辑  view和model的交互
+ 优点：角色清晰
+ 缺点：增加了interface-》增加功能可能需要修改多个文件
+ 应用场景：首页/复杂需求多变的页面
+ */
+public class JingZiQiMVPActivity extends AppCompatActivity {
+
+    private static  String TAG = JingZiQiMVPActivity.class.getName();
+
+    /** View */
+    private ViewGroup buttonGrid;
+    private View winnerPlayerViewGroup;
+    private TextView winnerPlayerLabel;
+
+    JingZiQiPresenter presenter = new JingZiQiPresenter(new JingZiQiView() {
+        @Override
+        public void setButtonText(int row, int col, String text) {
+            Button btn = (Button) buttonGrid.findViewWithTag("" + row + col);
+            if(btn != null) {
+                btn.setText(text);
+            }
+        }
+
+        @Override
+        public void clearButtons() {
+            for( int i = 0; i < buttonGrid.getChildCount(); i++ ) {
+                ((Button) buttonGrid.getChildAt(i)).setText("");
+            }
+        }
+
+        @Override
+        public void showWinner(String winningPlayerDisplayLabel) {
+            winnerPlayerLabel.setText(winningPlayerDisplayLabel);
+            winnerPlayerViewGroup.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void clearWinnerDisplay() {
+            winnerPlayerViewGroup.setVisibility(View.GONE);
+            winnerPlayerLabel.setText("");
+        }
+    });
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main_mvp);
+        winnerPlayerLabel = (TextView) findViewById(R.id.winnerPlayerLabel);
+        winnerPlayerViewGroup = findViewById(R.id.winnerPlayerViewGroup);
+        buttonGrid = (ViewGroup) findViewById(R.id.buttonGrid);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_jingziqi, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_reset:
+                presenter.onResetSelected();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+
+    public void onCellClicked(View v) {
+
+        Button button = (Button) v;
+
+        String tag = button.getTag().toString();
+        int row = Integer.valueOf(tag.substring(0, 1));
+        int col = Integer.valueOf(tag.substring(1, 2));
+        Log.i(TAG, "Click Row: [" + row + "," + col + "]");
+
+        presenter.onButtonSelected(row, col);
+    }
+
+
+}
